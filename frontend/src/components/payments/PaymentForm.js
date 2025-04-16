@@ -95,6 +95,12 @@ const PaymentForm = () => {
         paymentType: 'cash',
         notes: ''
       });
+      
+      // Add a slight delay before navigating to ensure payment is registered
+      setTimeout(() => {
+        // Navigate to dashboard to show updated data
+        navigate('/', { state: { refreshData: true } });
+      }, 1500);
     } catch (err) {
       console.error('Error recording payment:', err);
       setError('Failed to record payment. Please try again.');
@@ -129,7 +135,7 @@ const PaymentForm = () => {
         onClose={() => setSuccess(false)}
       >
         <Alert severity="success" sx={{ width: '100%' }}>
-          Payment recorded successfully!
+          Payment recorded successfully! Redirecting to dashboard...
         </Alert>
       </Snackbar>
       

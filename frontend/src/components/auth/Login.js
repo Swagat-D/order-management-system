@@ -1,8 +1,8 @@
 import React, { useState, useContext, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { 
   Container, Box, Typography, TextField, Button, Paper,
-  Alert, CircularProgress
+  Alert, CircularProgress, Grid
 } from '@mui/material';
 import { AuthContext } from '../../context/AuthContext';
 
@@ -101,6 +101,15 @@ const Login = () => {
             >
               {isSubmitting ? <CircularProgress size={24} /> : 'Sign In'}
             </Button>
+            <Grid container justifyContent="flex-end">
+              <Grid item>
+                <Link to="/register" style={{ textDecoration: 'none' }}>
+                  <Typography variant="body2" color="primary">
+                    Don't have an account? Register
+                  </Typography>
+                </Link>
+              </Grid>
+            </Grid>
           </Box>
         </Paper>
       </Box>

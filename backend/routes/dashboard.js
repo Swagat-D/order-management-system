@@ -31,12 +31,12 @@ router.get('/summary', auth, async (req, res) => {
     ]);
     const totalSales = salesResult.length > 0 ? salesResult[0].total : 0;
     
-    // Total cash received (sum of all payments)
-    const cashResult = await Order.aggregate([
-      { $match: deliveredQuery },
-      { $group: { _id: null, total: { $sum: '$amountPaid' } } }
+    // Get all payments within the date range (both order payments and separate payments)
+    const paymentsResult = await Payment.aggregate([
+      { $match: { paymentDate: { $gte: startDate, $lte: endDate } } },
+      { $group: { _id: null, total: { $sum: '$amount' } } }
     ]);
-    const totalCash = cashResult.length > 0 ? cashResult[0].total : 0;
+    const totalCash = paymentsResult.length > 0 ? paymentsResult[0].total : 0;
     
     // Total credit (total sales - total cash)
     const totalCredit = totalSales - totalCash;
@@ -116,6 +116,7 @@ router.get('/sales-chart', auth, async (req, res) => {
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - 30);
     
+    // Get daily sales data
     const salesData = await Order.aggregate([
       { 
         $match: { 
@@ -128,15 +129,58 @@ router.get('/sales-chart', auth, async (req, res) => {
           _id: { 
             $dateToString: { format: '%Y-%m-%d', date: '$orderDate' }
           },
-          sales: { $sum: '$totalAmount' },
-          cash: { $sum: '$amountPaid' },
-          credit: { $sum: { $subtract: ['$totalAmount', '$amountPaid'] } }
+          sales: { $sum: '$totalAmount' }
         }
       },
       { $sort: { _id: 1 } }
     ]);
     
-    res.json(salesData);
+    // Get daily payments data
+    const paymentsData = await Payment.aggregate([
+      { 
+        $match: { 
+          paymentDate: { $gte: startDate, $lte: endDate }
+        }
+      },
+      {
+        $group: {
+          _id: { 
+            $dateToString: { format: '%Y-%m-%d', date: '$paymentDate' }
+          },
+          cash: { $sum: '$amount' }
+        }
+      },
+      { $sort: { _id: 1 } }
+    ]);
+    
+    // Combine sales and payments data by date
+    const combinedData = [];
+    const allDates = new Set();
+    
+    // Collect all unique dates
+    salesData.forEach(item => allDates.add(item._id));
+    paymentsData.forEach(item => allDates.add(item._id));
+    
+    // Sort dates
+    const sortedDates = Array.from(allDates).sort();
+    
+    // Create the combined data array
+    sortedDates.forEach(date => {
+      const salesEntry = salesData.find(item => item._id === date);
+      const paymentsEntry = paymentsData.find(item => item._id === date);
+      
+      const sales = salesEntry ? salesEntry.sales : 0;
+      const cash = paymentsEntry ? paymentsEntry.cash : 0;
+      
+      combinedData.push({
+        _id: date,
+        sales: sales,
+        cash: cash,
+        credit: sales - cash
+      });
+    });
+    
+    res.json(combinedData);
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server error');

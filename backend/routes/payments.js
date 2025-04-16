@@ -80,4 +80,44 @@ router.get('/:id', auth, async (req, res) => {
   }
 });
 
+// @route   POST api/payments/store/:storeId
+// @desc    Record a payment for a store (not tied to a specific order)
+// @access  Private
+router.post('/store/:storeId', auth, async (req, res) => {
+  try {
+    const { amount, paymentType, notes } = req.body;
+    
+    // Input validation
+    if (!amount || isNaN(amount) || amount <= 0) {
+      return res.status(400).json({ msg: 'Please enter a valid payment amount' });
+    }
+    
+    // Find the store
+    const store = await Store.findById(req.params.storeId);
+    if (!store) {
+      return res.status(404).json({ msg: 'Store not found' });
+    }
+    
+    // Create the payment
+    const payment = new Payment({
+      store: req.params.storeId,
+      amount: parseFloat(amount),
+      paymentType: paymentType || 'cash',
+      notes: notes || 'General payment'
+    });
+    
+    // Update store balance
+    store.balance += parseFloat(amount);
+    
+    // Save both the payment and updated store
+    await payment.save();
+    await store.save();
+    
+    res.json(payment);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server error');
+  }
+});
+
 module.exports = router;

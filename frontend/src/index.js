@@ -4,6 +4,11 @@ import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 
+import '@fontsource/inter/400.css'; // Regular weight
+import '@fontsource/inter/500.css'; // Medium weight
+import '@fontsource/inter/600.css'; // Semi-bold weight
+import '@fontsource/inter/700.css'; // Bold weight
+
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>

@@ -2,21 +2,24 @@ import React, { useState, useEffect } from 'react';
 import { 
   Box, Grid, Paper, Typography, CircularProgress, Alert,
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-  Divider
+  Divider, Button, Tooltip, Dialog, DialogActions, DialogContent, DialogTitle
 } from '@mui/material';
 import { 
   TrendingUp as SalesIcon,
   CreditCard as CreditIcon,
   LocalAtm as CashIcon,
   ListAlt as OrderIcon,
-  Pending as PendingIcon
+  Pending as PendingIcon,
+  Refresh as RefreshIcon
 } from '@mui/icons-material';
+import axios from 'axios';
 import { Line } from 'react-chartjs-2';
-import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
+import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip as ChartTooltip, Legend } from 'chart.js';
 import { getDashboardSummary, getSalesChartData, getProductChartData } from '../../utils/api';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 // Register ChartJS components
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, ChartTooltip, Legend);
 
 const Dashboard = () => {
   const [summary, setSummary] = useState(null);
@@ -24,31 +27,94 @@ const Dashboard = () => {
   const [productChartData, setProductChartData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [openCreditDialog, setOpenCreditDialog] = useState(false);
+  const [openCashDialog, setOpenCashDialog] = useState(false);
+  const [cashTransactions, setCashTransactions] = useState([]);
+  const [ loadingTransactions, setLoadingTransactions] = useState(false);
 
+  const [openSalesDialog, setOpenSalesDialog] = useState(false);
+const [salesData, setSalesData] = useState([]);
+const [loadingSales, setLoadingSales] = useState(false);
+
+  // Track last refresh time
+  const [lastRefreshed, setLastRefreshed] = useState(new Date());
+
+  // This useEffect will run when the component mounts and when returning from other pages
   useEffect(() => {
-    const fetchDashboardData = async () => {
-      setLoading(true);
-      try {
-        // Fetch summary data
-        const summaryData = await getDashboardSummary();
-        setSummary(summaryData);
-        
-        // Fetch chart data
-        const salesData = await getSalesChartData();
-        setSalesChartData(salesData);
-        
-        const productData = await getProductChartData();
-        setProductChartData(productData);
-      } catch (err) {
-        console.error('Error fetching dashboard data:', err);
-        setError('Failed to load dashboard data. Please try refreshing.');
-      } finally {
-        setLoading(false);
-      }
-    };
-    
     fetchDashboardData();
-  }, []);
+  }, [location.key, lastRefreshed]); // location.key changes whenever navigation occurs
+
+  const handleOrdersClick = () => {
+    navigate('/orders');
+  };
+
+
+
+  const fetchDashboardData = async () => {
+    setLoading(true);
+    try {
+      // Fetch summary data
+      const summaryData = await getDashboardSummary();
+      setSummary(summaryData);
+      
+      // Fetch chart data
+      const salesData = await getSalesChartData();
+      setSalesChartData(salesData);
+      
+      const productData = await getProductChartData();
+      setProductChartData(productData);
+    } catch (err) {
+      console.error('Error fetching dashboard data:', err);
+      setError('Failed to load dashboard data. Please try refreshing.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchSalesData = async () => {
+    setLoadingSales(true);
+    try {
+      // Use your existing sales chart data if available or fetch from API
+      const data = await getSalesChartData();
+      setSalesData(data);
+    } catch (err) {
+      console.error('Error fetching sales data:', err);
+    } finally {
+      setLoadingSales(false);
+    }
+  };
+
+  // Manual refresh function
+  const handleRefresh = () => {
+    setLastRefreshed(new Date());
+  };
+
+  const fetchCashTransactions = async () => {
+    setLoadingTransactions(true);
+    try {
+      // Adjust the API endpoint to match your backend
+      const response = await axios.get('/api/payments?type=cash,upi,bank_transfer', {
+        headers: { 'x-auth-token': localStorage.getItem('token') }
+      });
+      setCashTransactions(response.data.payments || []);
+    } catch (err) {
+      console.error('Error fetching cash transactions:', err);
+    } finally {
+      setLoadingTransactions(false);
+    }
+  };
+
+  const handleCashClick = () => {
+    fetchCashTransactions();
+    setOpenCashDialog(true);
+  }
+
+  const handleSalesClick = () => {
+    fetchSalesData();
+    setOpenSalesDialog(true);
+  };
 
   // Prepare sales chart data
   const prepareSalesChartData = () => {
@@ -94,9 +160,21 @@ const Dashboard = () => {
 
   return (
     <Box sx={{ maxWidth: 1200, mx: 'auto' }}>
-      <Typography variant="h4" gutterBottom>
-        Dashboard
-      </Typography>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+        <Typography variant="h4">
+          Dashboard
+        </Typography>
+        <Tooltip title="Refresh Data">
+          <Button 
+            variant="outlined" 
+            startIcon={<RefreshIcon />} 
+            onClick={handleRefresh}
+            size="small"
+          >
+            Refresh
+          </Button>
+        </Tooltip>
+      </Box>
       
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
@@ -109,7 +187,7 @@ const Dashboard = () => {
           {/* Summary Cards */}
           <Grid container spacing={3} sx={{ mb: 4 }}>
             <Grid item xs={12} sm={6} md={3}>
-              <Paper sx={{ p: 2, display: 'flex', flexDirection: 'column', height: 140 }}>
+              <Paper sx={{ p: 2, display: 'flex', flexDirection: 'column', height: 140, cursor: 'pointer', '&:hover': { boxShadow: 6 } }} onClick={handleSalesClick}>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                   <SalesIcon color="primary" sx={{ mr: 1 }} />
                   <Typography component="h2" variant="subtitle1" color="primary">
@@ -125,7 +203,7 @@ const Dashboard = () => {
               </Paper>
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
-              <Paper sx={{ p: 2, display: 'flex', flexDirection: 'column', height: 140 }}>
+              <Paper sx={{ p: 2, display: 'flex', flexDirection: 'column', height: 140, cursor: 'pointer', '&:hover': { boxShadow: 6 } }} onClick={() => handleCashClick()}>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                   <CashIcon sx={{ color: 'success.main', mr: 1 }} />
                   <Typography component="h2" variant="subtitle1" color="success.main">
@@ -141,7 +219,7 @@ const Dashboard = () => {
               </Paper>
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
-              <Paper sx={{ p: 2, display: 'flex', flexDirection: 'column', height: 140 }}>
+              <Paper sx={{ p: 2, display: 'flex', flexDirection: 'column', height: 140, cursor: 'pointer', '&:hover': { boxShadow: 6 } }} onClick={() => setOpenCreditDialog(true)}>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                   <CreditIcon sx={{ color: 'error.main', mr: 1 }} />
                   <Typography component="h2" variant="subtitle1" color="error.main">
@@ -157,7 +235,7 @@ const Dashboard = () => {
               </Paper>
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
-              <Paper sx={{ p: 2, display: 'flex', flexDirection: 'column', height: 140 }}>
+              <Paper sx={{ p: 2, display: 'flex', flexDirection: 'column', height: 140, cursor: 'pointer', '&:hover': { boxShadow: 6 } }} onClick={handleOrdersClick}>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                   <OrderIcon color="primary" sx={{ mr: 1 }} />
                   <Typography component="h2" variant="subtitle1" color="primary">
@@ -284,6 +362,129 @@ const Dashboard = () => {
               </Paper>
             </Grid>
           </Grid>
+
+          <Dialog 
+  open={openSalesDialog} 
+  onClose={() => setOpenSalesDialog(false)}
+  maxWidth="md"
+  fullWidth
+>
+  <DialogTitle>Sales Details</DialogTitle>
+  <DialogContent>
+    {loadingSales ? (
+      <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+        <CircularProgress />
+      </Box>
+    ) : salesData.length === 0 ? (
+      <Typography sx={{ p: 2, textAlign: 'center' }}>No sales data found</Typography>
+    ) : (
+      <TableContainer>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>Date</TableCell>
+              <TableCell align="right">Sales Amount</TableCell>
+              <TableCell align="right">Cash Received</TableCell>
+              <TableCell align="right">Credit</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {salesData.map((day) => (
+              <TableRow key={day._id}>
+                <TableCell>{day._id}</TableCell>
+                <TableCell align="right">{formatCurrency(day.sales)}</TableCell>
+                <TableCell align="right">{formatCurrency(day.cash)}</TableCell>
+                <TableCell align="right">{formatCurrency(day.credit)}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    )}
+  </DialogContent>
+  <DialogActions>
+    <Button onClick={() => setOpenSalesDialog(false)}>Close</Button>
+  </DialogActions>
+</Dialog>
+
+          <Dialog 
+            open={openCashDialog} 
+            onClose={() => setOpenCashDialog(false)}
+            maxWidth="md"
+            fullWidth
+            >
+            <DialogTitle>Cash Received Transactions</DialogTitle>
+            <DialogContent>
+              {loadingTransactions ? (
+                <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+                  <CircularProgress />
+                </Box>
+              ) : cashTransactions.length === 0 ? (
+                <Typography sx={{ p: 2, textAlign: 'center' }}>No cash transactions found</Typography>
+              ) : (
+              <TableContainer>
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Date</TableCell>
+                      <TableCell>Store</TableCell>
+                      <TableCell>Type</TableCell>
+                      <TableCell align="right">Amount</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {cashTransactions.map((transaction) => (
+                      <TableRow key={transaction._id}>
+                        <TableCell>{new Date(transaction.paymentDate).toLocaleDateString()}</TableCell>
+                        <TableCell>{transaction.store.name}</TableCell>
+                        <TableCell>{transaction.paymentType.replace('_', ' ').toUpperCase()}</TableCell>
+                        <TableCell align="right">{formatCurrency(transaction.amount)}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+    )}
+  </DialogContent>
+  <DialogActions>
+    <Button onClick={() => setOpenCashDialog(false)}>Close</Button>
+  </DialogActions>
+</Dialog>
+  
+        
+{/* Credit Dialog */}
+<Dialog 
+  open={openCreditDialog} 
+  onClose={() => setOpenCreditDialog(false)}
+  maxWidth="md"
+  fullWidth
+>
+  <DialogTitle>Store Credit Summary</DialogTitle>
+  <DialogContent>
+    {/* Display store credits */}
+    <TableContainer>
+      <Table>
+        <TableHead>
+          <TableRow>
+            <TableCell>Store</TableCell>
+            <TableCell align="right">Outstanding Amount</TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {summary.topDebtStores && summary.topDebtStores.map((store) => (
+            <TableRow key={store._id}>
+              <TableCell>{store.name}</TableCell>
+              <TableCell align="right">{formatCurrency(Math.abs(store.balance))}</TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </TableContainer>
+  </DialogContent>
+  <DialogActions>
+    <Button onClick={() => setOpenCreditDialog(false)}>Close</Button>
+  </DialogActions>
+</Dialog>
         </>
       )}
     </Box>

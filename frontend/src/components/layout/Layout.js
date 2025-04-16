@@ -29,7 +29,7 @@ const Layout = () => {
             color="inherit"
             edge="start"
             onClick={handleDrawerToggle}
-            sx={{ mr: 2, display: { sm: 'none' } }}
+            sx={{ mr: 2 }}
           >
             <MenuIcon />
           </IconButton>
@@ -57,7 +57,7 @@ const Layout = () => {
             '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
           }}
         >
-          <Sidebar />
+          <Sidebar onItemClick={() => setMobileOpen(false)}/>
         </Drawer>
         <Drawer
           variant="permanent"

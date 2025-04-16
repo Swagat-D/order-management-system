@@ -16,7 +16,7 @@ import {
 } from '@mui/icons-material';
 import { AuthContext } from '../../context/AuthContext';
 
-const Sidebar = () => {
+const Sidebar = ( {onItemClick} ) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { logout } = useContext(AuthContext);
@@ -33,6 +33,7 @@ const Sidebar = () => {
 
   const handleNavigation = (path) => {
     navigate(path);
+    if(onItemClick) onItemClick();
   };
 
   const handleLogout = () => {
@@ -55,6 +56,11 @@ const Sidebar = () => {
             key={item.text} 
             onClick={() => handleNavigation(item.path)}
             selected={location.pathname === item.path}
+            sx={{
+              '&:hover':{
+                cursor: 'pointer',
+              }
+            }}
           >
             <ListItemIcon>
               {item.icon}
