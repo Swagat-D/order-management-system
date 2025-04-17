@@ -8,9 +8,11 @@ import {
 import { 
   LocalShipping as DeliverIcon, 
   Cancel as CancelIcon,
-  Visibility as ViewIcon
+  Visibility as ViewIcon,
+  Receipt as BillIcon
 } from '@mui/icons-material';
 import { getPendingOrders, deliverOrder, cancelOrder } from '../../utils/api';
+import OrderBill from '../bills/OrderBill';
 
 const PendingOrders = () => {
   const [orders, setOrders] = useState([]);
@@ -28,6 +30,11 @@ const PendingOrders = () => {
   // State for view dialog
   const [viewDialog, setViewDialog] = useState(false);
   const [viewOrder, setViewOrder] = useState(null);
+
+  // State for bill dialog
+  const [billDialog, setbillDialog] = useState(false);
+  const [billOrder, setBillOrder] = useState(null);
+  const [showBillAfterDelivery, setShowBillAfterDelivery] = useState(false);
 
   // Load pending orders
   const fetchPendingOrders = async () => {
@@ -52,6 +59,7 @@ const PendingOrders = () => {
     setSelectedOrder(order);
     setAmountPaid(order.totalAmount); // Default to full payment
     setPaymentType('cash');
+    setShowBillAfterDelivery(true); // Default to show bill after delivery
     setDeliverDialog(true);
   };
 
@@ -61,17 +69,33 @@ const PendingOrders = () => {
     setViewDialog(true);
   };
 
+  // Handle opening bill dialog
+  const handleBillClick = (order) => {
+    setBillOrder(order);
+    setbillDialog(true);
+  };
+
   // Handle deliver order
   const handleDeliverOrder = async () => {
     setProcessingDelivery(true);
     try {
-      await deliverOrder(selectedOrder._id, {
+      const updatedOrder = await deliverOrder(selectedOrder._id, {
         amountPaid: parseFloat(amountPaid),
         paymentType
       });
       
       setSuccess('Order marked as delivered successfully!');
       setDeliverDialog(false);
+      
+      // Check if we should show the bill immediately
+      if (showBillAfterDelivery) {
+        setBillOrder(updatedOrder);
+        // Fetch fresh order data after a short delay to ensure we have the latest
+        setTimeout(() => {
+          setbillDialog(true);
+        }, 500);
+      }
+      
       fetchPendingOrders();
     } catch (err) {
       console.error('Error delivering order:', err);
@@ -165,6 +189,13 @@ const PendingOrders = () => {
                       <DeliverIcon />
                     </IconButton>
                     <IconButton 
+                      color="info" 
+                      onClick={() => handleBillClick(order)}
+                      title="View Bill"
+                    >
+                      <BillIcon />
+                    </IconButton>
+                    <IconButton 
                       color="error" 
                       onClick={() => handleCancelOrder(order._id)}
                       title="Cancel Order"
@@ -225,6 +256,18 @@ const PendingOrders = () => {
                 Amount to be added to credit: 
                 ₹{(selectedOrder.totalAmount - amountPaid).toFixed(2)}
               </Typography>
+              
+              <FormControl fullWidth margin="dense">
+                <InputLabel>Generate Bill</InputLabel>
+                <Select
+                  value={showBillAfterDelivery}
+                  onChange={(e) => setShowBillAfterDelivery(e.target.value)}
+                  label="Generate Bill"
+                >
+                  <MenuItem value={true}>Generate bill after delivery</MenuItem>
+                  <MenuItem value={false}>Don't generate bill</MenuItem>
+                </Select>
+              </FormControl>
             </>
           )}
         </DialogContent>
@@ -311,6 +354,32 @@ const PendingOrders = () => {
         <DialogActions>
           <Button onClick={() => setViewDialog(false)}>Close</Button>
         </DialogActions>
+      </Dialog>
+      
+      {/* Bill Dialog */}
+      <Dialog 
+        open={billDialog} 
+        onClose={() => setbillDialog(false)}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>
+          Order Bill
+          <IconButton
+            aria-label="close"
+            onClick={() => setbillDialog(false)}
+            sx={{
+              position: 'absolute',
+              right: 8,
+              top: 8,
+            }}
+          >
+            <CancelIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent>
+          {billOrder && <OrderBill order={billOrder} onClose={() => setbillDialog(false)} />}
+        </DialogContent>
       </Dialog>
     </Box>
   );

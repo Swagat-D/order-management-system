@@ -5,6 +5,7 @@ const Order = require('../models/order');
 const Store = require('../models/store');
 const Product = require('../models/product');
 const Payment = require('../models/payment');
+const InventoryTransaction = require('../models/inventoryTransaction');
 
 // @route   GET api/orders
 // @desc    Get all orders with pagination and filters
@@ -164,6 +165,33 @@ router.post('/', auth, async (req, res) => {
 router.put('/:id/deliver', auth, async (req, res) => {
   try {
     const order = await Order.findById(req.params.id);
+    for (const item of order.items) {
+      const product = await Product.findById(item.product);
+      if (!product) {
+        continue; // Skip if product not found      
+    }
+
+    const previousQuantity = product.inventory;
+
+    product.inventory = Math.max(0, product.inventory - item.quantity); // Ensure inventory doesn't go negative
+    await product.save();
+
+    const transaction = new InventoryTransaction({
+      product: product._id,
+      transactionType: 'remove',
+      quantity: item.quantity,
+      previousQuantity,
+      newQuantity: product.inventory,
+      reference: 'order',
+      referenceId: order._id,
+      notes: `Deducted for Order #${order._id.toString().substring(order._id.toString().length - 8)}`,
+      user: req.user.id
+    });
+    
+    await transaction.save();
+  }
+
+  
     if (!order) {
       return res.status(404).json({ msg: 'Order not found' });
     }

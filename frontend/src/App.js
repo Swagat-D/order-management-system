@@ -21,6 +21,9 @@ import StoreList from './components/stores/StoreList';
 import StoreDetail from './components/stores/StoreDetail';
 import PaymentForm from './components/payments/PaymentForm';
 import Register from './components/auth/Register';
+import OrderBill from './components/bills/OrderBill';
+import InventoryManagement from './components/inventory/InventoryManagement';
+import InventoryTransactions from './components/inventory/InventoryTransactions';
 
 // Create theme
 const theme = createTheme({
@@ -56,6 +59,8 @@ function App() {
               <Route path="stores" element={<StoreList />} />
               <Route path="stores/:id" element={<StoreDetail />} />
               <Route path="payments/new" element={<PaymentForm />} />
+              <Route path="/inventory" element={<InventoryManagement />} />
+              <Route path="/inventory/transactions" element={<InventoryTransactions />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Route>
           </Routes>

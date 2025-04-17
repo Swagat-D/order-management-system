@@ -6,9 +6,12 @@ import {
   Pagination, FormControl, InputLabel, MenuItem, Select, Grid
 } from '@mui/material';
 import { 
-  Visibility as ViewIcon
+  Visibility as ViewIcon,
+  Receipt as BillIcon,
+  Cancel as CancelIcon
 } from '@mui/icons-material';
 import { getOrders } from '../../utils/api';
+import OrderBill from '../bills/OrderBill';
 
 const OrderList = () => {
   const [orders, setOrders] = useState([]);
@@ -27,6 +30,10 @@ const OrderList = () => {
   // State for view dialog
   const [viewDialog, setViewDialog] = useState(false);
   const [viewOrder, setViewOrder] = useState(null);
+  
+  // State for bill dialog
+  const [billDialog, setBillDialog] = useState(false);
+  const [billOrder, setBillOrder] = useState(null);
 
   // Load orders
   const fetchOrders = async (page = 1) => {
@@ -77,6 +84,12 @@ const OrderList = () => {
   const handleViewClick = (order) => {
     setViewOrder(order);
     setViewDialog(true);
+  };
+  
+  // Handle opening bill dialog
+  const handleBillClick = (order) => {
+    setBillOrder(order);
+    setBillDialog(true);
   };
 
   // Format date
@@ -193,6 +206,15 @@ const OrderList = () => {
                       >
                         <ViewIcon />
                       </IconButton>
+                      {order.status === 'delivered' && (
+                        <IconButton 
+                          color="info" 
+                          onClick={() => handleBillClick(order)}
+                          title="View Bill"
+                        >
+                          <BillIcon />
+                        </IconButton>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}
@@ -321,7 +343,46 @@ const OrderList = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setViewDialog(false)}>Close</Button>
+          {viewOrder && viewOrder.status === 'delivered' && (
+            <Button 
+              variant="contained" 
+              color="primary" 
+              startIcon={<BillIcon />}
+              onClick={() => {
+                setViewDialog(false);
+                handleBillClick(viewOrder);
+              }}
+            >
+              View Bill
+            </Button>
+          )}
         </DialogActions>
+      </Dialog>
+      
+      {/* Bill Dialog */}
+      <Dialog 
+        open={billDialog} 
+        onClose={() => setBillDialog(false)}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>
+          Order Bill
+          <IconButton
+            aria-label="close"
+            onClick={() => setBillDialog(false)}
+            sx={{
+              position: 'absolute',
+              right: 8,
+              top: 8,
+            }}
+          >
+            <CancelIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent>
+          {billOrder && <OrderBill order={billOrder} onClose={() => setBillDialog(false)} />}
+        </DialogContent>
       </Dialog>
     </Box>
   );
