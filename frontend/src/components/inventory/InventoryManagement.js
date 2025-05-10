@@ -3,12 +3,11 @@ import {
   Box, Typography, Paper, Table, TableBody, TableCell, TableContainer, 
   TableHead, TableRow, Button, IconButton, Dialog, DialogTitle, 
   DialogContent, DialogActions, TextField, Alert, Snackbar, CircularProgress,
-  InputAdornment, Card, CardContent, Grid
+   Card, CardContent, Grid
 } from '@mui/material';
 import { 
   Add as AddIcon,
   Remove as RemoveIcon,
-  Edit as EditIcon,
   History as HistoryIcon
 } from '@mui/icons-material';
 import { getProducts } from '../../utils/api';
@@ -42,11 +41,19 @@ const InventoryManagement = () => {
   const fetchProducts = async () => {
     setLoading(true);
     try {
+      // Try to get products from inventory endpoint first
       const data = await getInventory();
       setProducts(data);
     } catch (err) {
       console.error('Error fetching inventory:', err);
-      setError('Failed to load inventory. Please try refreshing.');
+      // Fall back to regular products endpoint if inventory endpoint fails
+      try {
+        const data = await getProducts();
+        setProducts(data);
+      } catch (secondErr) {
+        console.error('Error fetching products:', secondErr);
+        setError('Failed to load inventory. Please try refreshing.');
+      }
     } finally {
       setLoading(false);
     }
@@ -141,7 +148,7 @@ const InventoryManagement = () => {
       </Snackbar>
       
       {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
+        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError('')}>
           {error}
         </Alert>
       )}

@@ -14,7 +14,6 @@ import {
   Inventory,
   Payment as PaymentIcon,
   Logout as LogoutIcon,
-  History as HistoryIcon,
 } from '@mui/icons-material';
 import { AuthContext } from '../../context/AuthContext';
 
@@ -32,7 +31,6 @@ const Sidebar = ( {onItemClick} ) => {
     { text: 'Stores', icon: <StoreIcon />, path: '/stores' },
     { text: 'Record Payment', icon: <PaymentIcon />, path: '/payments/new' },
     { text: 'Inventory', icon: <Inventory />, path: '/inventory' },
-    { text: 'Inventory History', icon: <HistoryIcon />, path: '/inventory/transactions' },
   ];
 
   const handleNavigation = (path) => {

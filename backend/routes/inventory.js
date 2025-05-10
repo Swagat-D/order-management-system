@@ -17,6 +17,36 @@ router.get('/', auth, async (req, res) => {
   }
 });
 
+// IMPORTANT: General routes must come BEFORE parameter routes to avoid conflicts
+// @route   GET api/inventory/transactions
+// @desc    Get all inventory transactions
+// @access  Private
+router.get('/transactions', auth, async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    
+    const transactions = await InventoryTransaction.find()
+      .sort({ date: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .populate('product', 'name')
+      .populate('user', 'name');
+    
+    const total = await InventoryTransaction.countDocuments();
+    
+    res.json({
+      transactions,
+      totalPages: Math.ceil(total / limit),
+      currentPage: page,
+      totalTransactions: total
+    });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server error');
+  }
+});
+
 // @route   POST api/inventory/:id/add
 // @desc    Add inventory to a product
 // @access  Private
@@ -130,35 +160,6 @@ router.get('/:id/transactions', auth, async (req, res) => {
       .populate('user', 'name');
     
     res.json(transactions);
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server error');
-  }
-});
-
-// @route   GET api/inventory/transactions
-// @desc    Get all inventory transactions
-// @access  Private
-router.get('/transactions', auth, async (req, res) => {
-  try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
-    
-    const transactions = await InventoryTransaction.find()
-      .sort({ date: -1 })
-      .skip((page - 1) * limit)
-      .limit(limit)
-      .populate('product', 'name')
-      .populate('user', 'name');
-    
-    const total = await InventoryTransaction.countDocuments();
-    
-    res.json({
-      transactions,
-      totalPages: Math.ceil(total / limit),
-      currentPage: page,
-      totalTransactions: total
-    });
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server error');

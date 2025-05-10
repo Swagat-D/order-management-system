@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   Box, Typography, Paper, Table, TableBody, TableCell, TableContainer, 
   TableHead, TableRow, Alert, CircularProgress, Pagination,
-  FormControl, InputLabel, Select, MenuItem, Grid
+  FormControl, InputLabel, Select, MenuItem, Grid, Button
 } from '@mui/material';
 import { getAllTransactions } from '../../utils/inventoryApi';
 
@@ -19,17 +19,41 @@ const InventoryTransactions = () => {
   // Fetch transactions
   const fetchTransactions = async (page = 1) => {
     setLoading(true);
+    setError('');
     try {
       const data = await getAllTransactions(page, 20);
-      setTransactions(data.transactions);
-      setPagination({
-        currentPage: data.currentPage,
-        totalPages: data.totalPages,
-        totalTransactions: data.totalTransactions
-      });
+      
+      // Handle potential missing or malformed data
+      if (!data || (!data.transactions && !Array.isArray(data))) {
+        throw new Error('Invalid response data structure');
+      }
+      
+      // If data is an array, it's not paginated
+      if (Array.isArray(data)) {
+        setTransactions(data);
+        setPagination({
+          currentPage: 1,
+          totalPages: 1,
+          totalTransactions: data.length
+        });
+      } else {
+        // It's the expected paginated structure
+        setTransactions(data.transactions || []);
+        setPagination({
+          currentPage: data.currentPage || 1,
+          totalPages: data.totalPages || 1,
+          totalTransactions: data.totalTransactions || 0
+        });
+      }
     } catch (err) {
       console.error('Error fetching transactions:', err);
       setError('Failed to load inventory transactions. Please try refreshing.');
+      setTransactions([]);
+      setPagination({
+        currentPage: 1,
+        totalPages: 1,
+        totalTransactions: 0
+      });
     } finally {
       setLoading(false);
     }
@@ -71,7 +95,16 @@ const InventoryTransactions = () => {
       </Typography>
       
       {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
+        <Alert 
+          severity="error" 
+          sx={{ mb: 2 }} 
+          onClose={() => setError('')}
+          action={
+            <Button color="inherit" size="small" onClick={() => fetchTransactions(pagination.currentPage)}>
+              Retry
+            </Button>
+          }
+        >
           {error}
         </Alert>
       )}
@@ -109,21 +142,21 @@ const InventoryTransactions = () => {
               </TableHead>
               <TableBody>
                 {transactions.map((transaction) => (
-                  <TableRow key={transaction._id}>
-                    <TableCell>{formatDate(transaction.date)}</TableCell>
-                    <TableCell>{transaction.product.name}</TableCell>
+                  <TableRow key={transaction._id || Math.random().toString()}>
+                    <TableCell>{transaction.date ? formatDate(transaction.date) : 'N/A'}</TableCell>
+                    <TableCell>{transaction.product && transaction.product.name ? transaction.product.name : 'Unknown Product'}</TableCell>
                     <TableCell sx={{ 
                       color: transaction.transactionType === 'add' ? 'success.main' : 'error.main',
                       fontWeight: 'bold'
                     }}>
                       {transaction.transactionType === 'add' ? 'ADDED' : 'REMOVED'}
                     </TableCell>
-                    <TableCell>{getReferenceDisplay(transaction.reference)}</TableCell>
-                    <TableCell align="right">{transaction.quantity}</TableCell>
-                    <TableCell align="right">{transaction.previousQuantity}</TableCell>
-                    <TableCell align="right">{transaction.newQuantity}</TableCell>
-                    <TableCell>{transaction.notes}</TableCell>
-                    <TableCell>{transaction.user ? transaction.user.name : 'System'}</TableCell>
+                    <TableCell>{transaction.reference ? getReferenceDisplay(transaction.reference) : 'N/A'}</TableCell>
+                    <TableCell align="right">{transaction.quantity !== undefined ? transaction.quantity : 'N/A'}</TableCell>
+                    <TableCell align="right">{transaction.previousQuantity !== undefined ? transaction.previousQuantity : 'N/A'}</TableCell>
+                    <TableCell align="right">{transaction.newQuantity !== undefined ? transaction.newQuantity : 'N/A'}</TableCell>
+                    <TableCell>{transaction.notes || 'No notes'}</TableCell>
+                    <TableCell>{transaction.user && transaction.user.name ? transaction.user.name : 'System'}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

@@ -1,75 +1,110 @@
-import axios from 'axios';
+// utils/inventoryApi.js
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
-
-// Get all products with inventory
+// Get inventory for all products
 export const getInventory = async () => {
   try {
-    const res = await axios.get(`${API_URL}/inventory`, {
-      headers: {
-        'x-auth-token': localStorage.getItem('token')
-      }
-    });
-    return res.data;
+    const response = await fetch('/api/inventory');
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to fetch inventory');
+    }
+    
+    return await response.json();
   } catch (error) {
-    throw error.response.data;
+    console.error('API Error:', error);
+    throw error;
   }
 };
 
 // Add inventory to a product
 export const addInventory = async (productId, data) => {
   try {
-    const res = await axios.post(`${API_URL}/inventory/${productId}/add`, data, {
+    const response = await fetch(`/api/inventory/${productId}/add`, {
+      method: 'POST',
       headers: {
-        'x-auth-token': localStorage.getItem('token'),
-        'Content-Type': 'application/json'
-      }
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data)
     });
-    return res.data;
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to add inventory');
+    }
+    
+    return await response.json();
   } catch (error) {
-    throw error.response.data;
+    console.error('API Error:', error);
+    throw error;
   }
 };
 
 // Remove inventory from a product
 export const removeInventory = async (productId, data) => {
   try {
-    const res = await axios.post(`${API_URL}/inventory/${productId}/remove`, data, {
+    const response = await fetch(`/api/inventory/${productId}/remove`, {
+      method: 'POST',
       headers: {
-        'x-auth-token': localStorage.getItem('token'),
-        'Content-Type': 'application/json'
-      }
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data)
     });
-    return res.data;
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to remove inventory');
+    }
+    
+    return await response.json();
   } catch (error) {
-    throw error.response.data;
+    console.error('API Error:', error);
+    throw error;
   }
 };
 
-// Get inventory transactions for a product
+// Get transactions for a specific product
 export const getProductTransactions = async (productId) => {
   try {
-    const res = await axios.get(`${API_URL}/inventory/${productId}/transactions`, {
-      headers: {
-        'x-auth-token': localStorage.getItem('token')
-      }
-    });
-    return res.data;
+    const response = await fetch(`/api/inventory/transactions/product/${productId}`);
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to fetch product transactions');
+    }
+    
+    return await response.json();
   } catch (error) {
-    throw error.response.data;
+    console.error('API Error:', error);
+    throw error;
   }
 };
 
 // Get all inventory transactions with pagination
-export const getAllTransactions = async (page = 1, limit = 10) => {
+export const getAllTransactions = async (page = 1, limit = 20) => {
   try {
-    const res = await axios.get(`${API_URL}/inventory/transactions?page=${page}&limit=${limit}`, {
-      headers: {
-        'x-auth-token': localStorage.getItem('token')
-      }
-    });
-    return res.data;
+    const response = await fetch(`/api/inventory/transactions?page=${page}&limit=${limit}`);
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to fetch transactions');
+    }
+    
+    const data = await response.json();
+    
+    // If the response doesn't match expected structure, transform it
+    if (!data.transactions && Array.isArray(data)) {
+      return {
+        transactions: data,
+        currentPage: page,
+        totalPages: 1,
+        totalTransactions: data.length
+      };
+    }
+    
+    return data;
   } catch (error) {
-    throw error.response.data;
+    console.error('API Error:', error);
+    throw error;
   }
 };
