@@ -1,9 +1,17 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { 
-  Container, Box, Typography, TextField, Button, Paper,
-  Alert, CircularProgress, Grid
+import {
+  Container,
+  Box,
+  Typography,
+  TextField,
+  Button,
+  Paper,
+  Alert,
+  CircularProgress,
+  Grid,
 } from '@mui/material';
+import { LocalDrink as LocalDrinkIcon } from '@mui/icons-material';
 import axios from 'axios';
 import { AuthContext } from '../../context/AuthContext';
 
@@ -14,16 +22,14 @@ const Register = () => {
     username: '',
     password: '',
     confirmPassword: '',
-    name: ''
+    name: '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
-  
   const { isAuthenticated } = useContext(AuthContext);
   const navigate = useNavigate();
 
   useEffect(() => {
-    // If already authenticated, redirect to dashboard
     if (isAuthenticated) {
       navigate('/');
     }
@@ -32,35 +38,28 @@ const Register = () => {
   const handleChange = (e) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    // Validation
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match');
       return;
     }
-    
     if (formData.password.length < 6) {
       setError('Password must be at least 6 characters');
       return;
     }
-    
     setIsSubmitting(true);
     setError('');
-    
     try {
       await axios.post(`${API_URL}/auth/register`, {
         username: formData.username,
         password: formData.password,
-        name: formData.name
+        name: formData.name,
       });
-      
-      // Redirect to login page on successful registration
       navigate('/login', { state: { message: 'Registration successful! Please log in.' } });
     } catch (err) {
       setError(err.response?.data?.msg || 'Registration failed. Please try again.');
@@ -73,26 +72,96 @@ const Register = () => {
     <Container component="main" maxWidth="xs">
       <Box
         sx={{
-          marginTop: 8,
+          marginTop: { xs: 4, sm: 8 },
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
+          px: { xs: 1, sm: 2 },
+          py: { xs: 2, sm: 3 },
         }}
       >
-        <Paper elevation={3} sx={{ p: 4, width: '100%' }}>
-          <Typography component="h1" variant="h5" align="center" gutterBottom>
+        <Paper
+          sx={{
+            p: { xs: 2, sm: 3 },
+            width: '100%',
+            borderRadius: '16px',
+            boxShadow: '0 6px 12px rgba(0,0,0,0.1)',
+            background: 'linear-gradient(145deg, #ffffff 0%, #f9f9f9 100%)',
+            borderLeft: '4px solid',
+            borderColor: 'primary.main',
+            transition: 'opacity 0.3s ease, transform 0.3s ease',
+            opacity: 1,
+            '&:hover': { transform: 'scale(1.02)' },
+          }}
+        >
+          <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
+            <LocalDrinkIcon
+              sx={{
+                fontSize: { xs: '2.5rem', sm: '3rem' },
+                color: 'primary.main',
+                transition: 'transform 0.3s ease',
+                '&:hover': { transform: 'scale(1.1)' },
+              }}
+            />
+          </Box>
+          <Typography
+            component="h1"
+            variant="h5"
+            align="center"
+            gutterBottom
+            sx={{
+              fontWeight: 700,
+              fontSize: { xs: '1.25rem', sm: '1.5rem' },
+              letterSpacing: '0.5px',
+              color: 'text.primary',
+              position: 'relative',
+              borderBottom: '2px solid',
+              borderColor: 'primary.main',
+              pb: 1,
+              '&::after': {
+                content: '""',
+                position: 'absolute',
+                bottom: -2,
+                left: '50%',
+                transform: 'translateX(-50%)',
+                width: '50px',
+                height: '4px',
+                bgcolor: 'secondary.main',
+                borderRadius: '2px',
+              },
+            }}
+          >
             Cold Drinks Wholesale
           </Typography>
-          <Typography component="h2" variant="h6" align="center" mb={3}>
+          <Typography
+            component="h2"
+            variant="h6"
+            align="center"
+            sx={{
+              mb: 3,
+              fontSize: { xs: '1rem', sm: '1.25rem' },
+              color: 'text.secondary',
+            }}
+          >
             Create Account
           </Typography>
-          
+
           {error && (
-            <Alert severity="error" sx={{ mb: 2 }}>
+            <Alert
+              severity="error"
+              sx={{
+                mb: 2,
+                borderRadius: '12px',
+                bgcolor: 'error.light',
+                color: 'error.contrastText',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                fontSize: { xs: '0.75rem', sm: '0.875rem' },
+              }}
+            >
               {error}
             </Alert>
           )}
-          
+
           <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
             <TextField
               margin="normal"
@@ -104,6 +173,10 @@ const Register = () => {
               autoComplete="name"
               value={formData.name}
               onChange={handleChange}
+              sx={{
+                '& .MuiInputBase-root': { fontSize: { xs: '0.875rem', sm: '1rem' } },
+                '& .MuiInputLabel-root': { fontSize: { xs: '0.875rem', sm: '1rem' } },
+              }}
             />
             <TextField
               margin="normal"
@@ -115,6 +188,10 @@ const Register = () => {
               autoComplete="username"
               value={formData.username}
               onChange={handleChange}
+              sx={{
+                '& .MuiInputBase-root': { fontSize: { xs: '0.875rem', sm: '1rem' } },
+                '& .MuiInputLabel-root': { fontSize: { xs: '0.875rem', sm: '1rem' } },
+              }}
             />
             <TextField
               margin="normal"
@@ -127,6 +204,10 @@ const Register = () => {
               autoComplete="new-password"
               value={formData.password}
               onChange={handleChange}
+              sx={{
+                '& .MuiInputBase-root': { fontSize: { xs: '0.875rem', sm: '1rem' } },
+                '& .MuiInputLabel-root': { fontSize: { xs: '0.875rem', sm: '1rem' } },
+              }}
             />
             <TextField
               margin="normal"
@@ -138,20 +219,45 @@ const Register = () => {
               id="confirmPassword"
               value={formData.confirmPassword}
               onChange={handleChange}
+              sx={{
+                '& .MuiInputBase-root': { fontSize: { xs: '0.875rem', sm: '1rem' } },
+                '& .MuiInputLabel-root': { fontSize: { xs: '0.875rem', sm: '1rem' } },
+              }}
             />
             <Button
               type="submit"
               fullWidth
               variant="contained"
-              sx={{ mt: 3, mb: 2 }}
               disabled={isSubmitting}
+              sx={{
+                mt: 3,
+                mb: 2,
+                fontSize: { xs: '0.875rem', sm: '1rem' },
+                py: { xs: 1, sm: '1.5' },
+                borderRadius: '12px',
+                background: 'linear-gradient(135deg, #0288d1 0%, #4fb3bf 100%)',
+                '&:hover': {
+                  background: 'linear-gradient(135deg, #005b9f 0%, #4fb3bf 100%)',
+                  transform: 'scale(1.05)',
+                },
+                transition: 'all 0.3s ease',
+              }}
             >
-              {isSubmitting ? <CircularProgress size={24} /> : 'Create Account'}
+              {isSubmitting ? <CircularProgress size={24} color="inherit" /> : 'Create Account'}
             </Button>
             <Grid container justifyContent="flex-end">
               <Grid item>
                 <Link to="/login" style={{ textDecoration: 'none' }}>
-                  <Typography variant="body2" color="primary">
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      color: 'primary.main',
+                      fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                      '&:hover': { color: 'secondary.main', textDecoration: 'underline' },
+                      py: 1,
+                      px: 2,
+                    }}
+                  >
                     Already have an account? Sign in
                   </Typography>
                 </Link>
