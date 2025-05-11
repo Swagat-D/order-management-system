@@ -15,6 +15,16 @@ if (!process.env.MONGO_URI) {
   process.exit(1);
 }
 
+const cors = require('cors');
+
+app.use(cors({
+  origin: 'https://order-management-system-main.vercel.app',  // Your frontend domain
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  credentials: true
+}));
+
+app.options('*', cors());
+
 // Validate JWT Secret
 if (!process.env.JWT_SECRET) {
   console.error('JWT_SECRET is not defined in .env file');
