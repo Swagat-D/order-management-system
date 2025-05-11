@@ -22,6 +22,7 @@ import StoreDetail from './components/stores/StoreDetail';
 import PaymentForm from './components/payments/PaymentForm';
 import Register from './components/auth/Register';
 import OrderBill from './components/bills/OrderBill';
+import ForgotPassword from './components/auth/ForgotPassword';
 import InventoryManagement from './components/inventory/InventoryManagement';
 import InventoryTransactions from './components/inventory/InventoryTransactions';
 
@@ -62,6 +63,8 @@ function App() {
               <Route path="/inventory" element={<InventoryManagement />} />
               <Route path="/inventory/transactions" element={<InventoryTransactions />} />
               <Route path="*" element={<Navigate to="/" replace />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/orders/:id/bill" element={<OrderBill />} />
             </Route>
           </Routes>
         </Router>

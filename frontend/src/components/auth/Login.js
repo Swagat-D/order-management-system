@@ -10,8 +10,10 @@ import {
   Alert,
   CircularProgress,
   Grid,
+  IconButton,
+  InputAdornment,
 } from '@mui/material';
-import { LocalDrink as LocalDrinkIcon } from '@mui/icons-material';
+import { LocalDrink as LocalDrinkIcon, Visibility, VisibilityOff } from '@mui/icons-material';
 import { AuthContext } from '../../context/AuthContext';
 
 const Login = () => {
@@ -23,6 +25,7 @@ const Login = () => {
   const location = useLocation();
   const [message] = useState(location.state?.message || '');
   const from = location.state?.from?.pathname || '/';
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -173,16 +176,47 @@ const Login = () => {
               fullWidth
               name="password"
               label="Password"
-              type="password"
+              type={showPassword ? 'text' : 'password'}
               id="password"
               autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      aria-label="toggle password visibility"
+                      onClick={() => setShowPassword(!showPassword)}
+                      edge="end"
+                    >
+                      {showPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
               sx={{
                 '& .MuiInputBase-root': { fontSize: { xs: '0.875rem', sm: '1rem' } },
                 '& .MuiInputLabel-root': { fontSize: { xs: '0.875rem', sm: '1rem' } },
               }}
             />
+<Grid container>
+  <Grid item xs>
+    <Link to="/forgot-password" style={{ textDecoration: 'none' }}>
+      <Typography
+        variant="body2"
+        sx={{
+          color: 'primary.main',
+          fontSize: { xs: '0.75rem', sm: '0.875rem' },
+          '&:hover': { color: 'secondary.main', textDecoration: 'underline' },
+          py: 1,
+          px: 2,
+        }}
+      >
+        Forgot password?
+      </Typography>
+    </Link>
+  </Grid>
+</Grid>
             <Button
               type="submit"
               fullWidth

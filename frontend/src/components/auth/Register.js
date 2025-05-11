@@ -10,8 +10,10 @@ import {
   Alert,
   CircularProgress,
   Grid,
+  InputAdornment,
+  IconButton,
 } from '@mui/material';
-import { LocalDrink as LocalDrinkIcon } from '@mui/icons-material';
+import { LocalDrink as LocalDrinkIcon, Visibility, VisibilityOff } from '@mui/icons-material';
 import axios from 'axios';
 import { AuthContext } from '../../context/AuthContext';
 
@@ -26,6 +28,8 @@ const Register = () => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const { isAuthenticated } = useContext(AuthContext);
   const navigate = useNavigate();
 
@@ -194,36 +198,62 @@ const Register = () => {
               }}
             />
             <TextField
-              margin="normal"
-              required
-              fullWidth
-              name="password"
-              label="Password"
-              type="password"
-              id="password"
-              autoComplete="new-password"
-              value={formData.password}
-              onChange={handleChange}
-              sx={{
-                '& .MuiInputBase-root': { fontSize: { xs: '0.875rem', sm: '1rem' } },
-                '& .MuiInputLabel-root': { fontSize: { xs: '0.875rem', sm: '1rem' } },
-              }}
-            />
+  margin="normal"
+  required
+  fullWidth
+  name="password"
+  label="Password"
+  type={showPassword ? 'text' : 'password'}
+  id="password"
+  autoComplete="new-password"
+  value={formData.password}
+  onChange={handleChange}
+  InputProps={{
+    endAdornment: (
+      <InputAdornment position="end">
+        <IconButton
+          aria-label="toggle password visibility"
+          onClick={() => setShowPassword(!showPassword)}
+          edge="end"
+        >
+          {showPassword ? <VisibilityOff /> : <Visibility />}
+        </IconButton>
+      </InputAdornment>
+    ),
+  }}
+  sx={{
+    '& .MuiInputBase-root': { fontSize: { xs: '0.875rem', sm: '1rem' } },
+    '& .MuiInputLabel-root': { fontSize: { xs: '0.875rem', sm: '1rem' } },
+  }}
+/>
             <TextField
-              margin="normal"
-              required
-              fullWidth
-              name="confirmPassword"
-              label="Confirm Password"
-              type="password"
-              id="confirmPassword"
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              sx={{
-                '& .MuiInputBase-root': { fontSize: { xs: '0.875rem', sm: '1rem' } },
-                '& .MuiInputLabel-root': { fontSize: { xs: '0.875rem', sm: '1rem' } },
-              }}
-            />
+  margin="normal"
+  required
+  fullWidth
+  name="confirmPassword"
+  label="Confirm Password"
+  type={showConfirmPassword ? 'text' : 'password'}
+  id="confirmPassword"
+  value={formData.confirmPassword}
+  onChange={handleChange}
+  InputProps={{
+    endAdornment: (
+      <InputAdornment position="end">
+        <IconButton
+          aria-label="toggle confirm password visibility"
+          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+          edge="end"
+        >
+          {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
+        </IconButton>
+      </InputAdornment>
+    ),
+  }}
+  sx={{
+    '& .MuiInputBase-root': { fontSize: { xs: '0.875rem', sm: '1rem' } },
+    '& .MuiInputLabel-root': { fontSize: { xs: '0.875rem', sm: '1rem' } },
+  }}
+/>
             <Button
               type="submit"
               fullWidth
