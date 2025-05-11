@@ -1,8 +1,10 @@
 const express = require('express');
 const router = express.Router();
+const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const auth = require('../middleware/auth');
 const User = require('../models/user');
+const { generateOTP, sendEmail } = require('../utils/email');
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 const otpStore = new Map();
@@ -19,9 +21,12 @@ const transporter = nodemailer.createTransport({
 // @desc    Send OTP to user's email for password reset
 // @access  Public
 router.post('/forgot-password', async (req, res) => {
-  const { email } = req.body;
 
   try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ msg: 'Email is required' });
+    }
     // Find user by email (need to modify user model to include email field)
     const user = await User.findOne({ email });
     if (!user) {
@@ -34,7 +39,7 @@ router.post('/forgot-password', async (req, res) => {
     // Store OTP with expiration (15 minutes)
     otpStore.set(email, {
       otp,
-      expiry: Date.now() + 15 * 60 * 1000, // 15 minutes
+      expiry: Date.now() + 10 * 60 * 1000, // 15 minutes
       userId: user._id
     });
 
@@ -46,7 +51,7 @@ router.post('/forgot-password', async (req, res) => {
       html: `
         <h1>Password Reset</h1>
         <p>Your OTP for password reset is: <strong>${otp}</strong></p>
-        <p>This OTP will expire in 15 minutes.</p>
+        <p>This OTP will expire in 10 minutes.</p>
         <p>If you did not request a password reset, please ignore this email.</p>
       `,
     };
@@ -64,6 +69,10 @@ router.post('/forgot-password', async (req, res) => {
 // @access  Public
 router.post('/verify-otp', (req, res) => {
   const { email, otp } = req.body;
+
+  if (!email || !otp) {
+      return res.status(400).json({ msg: 'Email and OTP are required' });
+    }
 
   // Check if OTP exists and is valid
   const otpData = otpStore.get(email);
@@ -104,6 +113,10 @@ router.post('/reset-password', async (req, res) => {
     if (!user) {
       return res.status(404).json({ msg: 'User not found' });
     }
+
+    // Hash the new password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
 
     // Update password
     user.password = password; // This will be hashed by the pre-save hook
@@ -165,20 +178,29 @@ router.post('/login', async (req, res) => {
 // @desc    Register a user (only for initial setup)
 // @access  Public
 router.post('/register', async (req, res) => {
-  const { username, password, name } = req.body;
 
   try {
+    const { username, password, email } = req.body;
+    if (!username || !email || !password) {
+      return res.status(400).json({ msg: 'Please enter all fields' });
+    }
     // Check if user already exists
     let user = await User.findOne({ username });
     if (user) {
       return res.status(400).json({ msg: 'User already exists' });
     }
 
+    // Check if email already exists
+    user = await User.findOne({ email });
+    if (user) {
+      return res.status(400).json({ msg: 'Email already exists' });
+    }
+
     // Create new user
     user = new User({
       username,
       password,
-      name
+      email
     });
 
     await user.save();

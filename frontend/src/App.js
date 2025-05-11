@@ -47,6 +47,7 @@ function App() {
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/" element={
               <PrivateRoute>
                 <Layout />
@@ -63,7 +64,6 @@ function App() {
               <Route path="/inventory" element={<InventoryManagement />} />
               <Route path="/inventory/transactions" element={<InventoryTransactions />} />
               <Route path="*" element={<Navigate to="/" replace />} />
-              <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/orders/:id/bill" element={<OrderBill />} />
             </Route>
           </Routes>

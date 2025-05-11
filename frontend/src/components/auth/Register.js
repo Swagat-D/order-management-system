@@ -22,6 +22,7 @@ const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 const Register = () => {
   const [formData, setFormData] = useState({
     username: '',
+    email: '',
     password: '',
     confirmPassword: '',
     name: '',
@@ -40,11 +41,12 @@ const Register = () => {
   }, [isAuthenticated, navigate]);
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
+  const { name, value } = e.target;
+  setFormData({
+    ...formData,
+    [name]: value,
+  });
+};
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -54,6 +56,10 @@ const Register = () => {
     }
     if (formData.password.length < 6) {
       setError('Password must be at least 6 characters');
+      return;
+    }
+    if(!formData.email.includes('@')) {
+      setError('Please enter a valid email address');
       return;
     }
     setIsSubmitting(true);
@@ -165,8 +171,23 @@ const Register = () => {
               {error}
             </Alert>
           )}
-
+          
           <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
+            <TextField
+              margin="normal"
+              required
+              fullWidth
+              id="email"
+              label="Email Address"
+              name="email"
+              autoComplete="email"
+              value={formData.email}
+              onChange={handleChange}
+              sx={{
+                '& .MuiInputBase-root': { fontSize: { xs: '0.875rem', sm: '1rem' } },
+                '& .MuiInputLabel-root': { fontSize: { xs: '0.875rem', sm: '1rem' } },
+              }}
+            />
             <TextField
               margin="normal"
               required
