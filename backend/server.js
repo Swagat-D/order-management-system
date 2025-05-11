@@ -5,7 +5,7 @@ const connectDB = require('./config/db');
 const dotenv = require('dotenv');
 
 // Load environment variables
-dotenv.config();
+require('dotenv').config();
 
 // Validate MongoDB URI
 if (!process.env.MONGO_URI) {

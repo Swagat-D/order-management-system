@@ -41,15 +41,17 @@ const Register = () => {
   }, [isAuthenticated, navigate]);
 
   const handleChange = (e) => {
-  const { name, value } = e.target;
-  setFormData({
-    ...formData,
-    [name]: value,
-  });
-};
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value,
+    });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Form validation
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match');
       return;
@@ -62,17 +64,47 @@ const Register = () => {
       setError('Please enter a valid email address');
       return;
     }
+    if (!formData.name.trim()) {
+      setError('Name is required');
+      return;
+    }
+    
     setIsSubmitting(true);
     setError('');
+    
+    // Log the data we're sending
+    console.log('Sending registration data:', {
+      username: formData.username,
+      email: formData.email,
+      password: formData.password,
+      name: formData.name,
+    });
+    
     try {
-      await axios.post(`${API_URL}/auth/register`, {
+      // Make sure to include all required fields
+      const response = await axios.post(`${API_URL}/auth/register`, {
         username: formData.username,
+        email: formData.email,
         password: formData.password,
         name: formData.name,
+      }, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
       });
+      
+      console.log('Registration response:', response.data);
       navigate('/login', { state: { message: 'Registration successful! Please log in.' } });
     } catch (err) {
-      setError(err.response?.data?.msg || 'Registration failed. Please try again.');
+      console.error('Registration error:', err);
+      // Get the error message, with fallbacks
+      const errorMessage = 
+        err.response?.data?.msg || 
+        err.response?.data?.message || 
+        err.message || 
+        'Registration failed. Please try again.';
+      
+      setError(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
@@ -219,62 +251,62 @@ const Register = () => {
               }}
             />
             <TextField
-  margin="normal"
-  required
-  fullWidth
-  name="password"
-  label="Password"
-  type={showPassword ? 'text' : 'password'}
-  id="password"
-  autoComplete="new-password"
-  value={formData.password}
-  onChange={handleChange}
-  InputProps={{
-    endAdornment: (
-      <InputAdornment position="end">
-        <IconButton
-          aria-label="toggle password visibility"
-          onClick={() => setShowPassword(!showPassword)}
-          edge="end"
-        >
-          {showPassword ? <VisibilityOff /> : <Visibility />}
-        </IconButton>
-      </InputAdornment>
-    ),
-  }}
-  sx={{
-    '& .MuiInputBase-root': { fontSize: { xs: '0.875rem', sm: '1rem' } },
-    '& .MuiInputLabel-root': { fontSize: { xs: '0.875rem', sm: '1rem' } },
-  }}
-/>
+              margin="normal"
+              required
+              fullWidth
+              name="password"
+              label="Password"
+              type={showPassword ? 'text' : 'password'}
+              id="password"
+              autoComplete="new-password"
+              value={formData.password}
+              onChange={handleChange}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      aria-label="toggle password visibility"
+                      onClick={() => setShowPassword(!showPassword)}
+                      edge="end"
+                    >
+                      {showPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+              sx={{
+                '& .MuiInputBase-root': { fontSize: { xs: '0.875rem', sm: '1rem' } },
+                '& .MuiInputLabel-root': { fontSize: { xs: '0.875rem', sm: '1rem' } },
+              }}
+            />
             <TextField
-  margin="normal"
-  required
-  fullWidth
-  name="confirmPassword"
-  label="Confirm Password"
-  type={showConfirmPassword ? 'text' : 'password'}
-  id="confirmPassword"
-  value={formData.confirmPassword}
-  onChange={handleChange}
-  InputProps={{
-    endAdornment: (
-      <InputAdornment position="end">
-        <IconButton
-          aria-label="toggle confirm password visibility"
-          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-          edge="end"
-        >
-          {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
-        </IconButton>
-      </InputAdornment>
-    ),
-  }}
-  sx={{
-    '& .MuiInputBase-root': { fontSize: { xs: '0.875rem', sm: '1rem' } },
-    '& .MuiInputLabel-root': { fontSize: { xs: '0.875rem', sm: '1rem' } },
-  }}
-/>
+              margin="normal"
+              required
+              fullWidth
+              name="confirmPassword"
+              label="Confirm Password"
+              type={showConfirmPassword ? 'text' : 'password'}
+              id="confirmPassword"
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      aria-label="toggle confirm password visibility"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      edge="end"
+                    >
+                      {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+              sx={{
+                '& .MuiInputBase-root': { fontSize: { xs: '0.875rem', sm: '1rem' } },
+                '& .MuiInputLabel-root': { fontSize: { xs: '0.875rem', sm: '1rem' } },
+              }}
+            />
             <Button
               type="submit"
               fullWidth

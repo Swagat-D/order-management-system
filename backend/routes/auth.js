@@ -4,7 +4,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const auth = require('../middleware/auth');
 const User = require('../models/user');
-const { generateOTP, sendEmail } = require('../utils/email');
+//const { generateOTP, sendEmail } = require('../utils/email');
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 const otpStore = new Map();
@@ -21,7 +21,6 @@ const transporter = nodemailer.createTransport({
 // @desc    Send OTP to user's email for password reset
 // @access  Public
 router.post('/forgot-password', async (req, res) => {
-
   try {
     const { email } = req.body;
     if (!email) {
@@ -178,21 +177,31 @@ router.post('/login', async (req, res) => {
 // @desc    Register a user (only for initial setup)
 // @access  Public
 router.post('/register', async (req, res) => {
+  console.log('Registration request received:', req.body);
 
   try {
-    const { username, password, email } = req.body;
-    if (!username || !email || !password) {
-      return res.status(400).json({ msg: 'Please enter all fields' });
+    const { username, password, email, name } = req.body;
+    
+    // Log the body for debugging
+    console.log('Register request body:', { username, email, name, password: password ? '[FILTERED]' : 'missing' });
+    
+    // Check required fields
+    if (!username || !email || !password || !name) {
+      console.log('Missing required field(s)');
+      return res.status(400).json({ msg: 'Please enter all fields - username, email, password, and name are required' });
     }
+    
     // Check if user already exists
     let user = await User.findOne({ username });
     if (user) {
+      console.log('Username already exists');
       return res.status(400).json({ msg: 'User already exists' });
     }
 
     // Check if email already exists
     user = await User.findOne({ email });
     if (user) {
+      console.log('Email already exists');
       return res.status(400).json({ msg: 'Email already exists' });
     }
 
@@ -200,10 +209,12 @@ router.post('/register', async (req, res) => {
     user = new User({
       username,
       password,
-      email
+      email,
+      name
     });
 
     await user.save();
+    console.log('User saved successfully');
 
     // Create JWT token
     const payload = {
@@ -223,8 +234,8 @@ router.post('/register', async (req, res) => {
       }
     );
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server error');
+    console.error('Registration error:', err.message);
+    res.status(500).json({ msg: 'Server error', error: err.message });
   }
 });
 
