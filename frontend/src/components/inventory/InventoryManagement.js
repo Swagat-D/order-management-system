@@ -95,8 +95,13 @@ const InventoryManagement = () => {
       setHistoryDialog(true);
     }
   };
-
+  
   const handleInventoryUpdate = async () => {
+
+    if (!selectedProduct || !selectedProduct._id) {
+    setError('Product not selected properly');
+    return;
+  }
     const quantity = parseInt(quantityChange);
     if (isNaN(quantity) || quantity <= 0) {
       setError('Please enter a valid quantity');

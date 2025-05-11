@@ -2,8 +2,14 @@
 
 // Get inventory for all products
 export const getInventory = async () => {
+  const token = localStorage.getItem('token');
   try {
-    const response = await fetch('/api/inventory');
+    const response = await fetch('/api/inventory', {
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    });
     
     if (!response.ok) {
       const error = await response.json();
@@ -18,12 +24,18 @@ export const getInventory = async () => {
 };
 
 // Add inventory to a product
+
 export const addInventory = async (productId, data) => {
+  const token = localStorage.getItem('token');
+  if (!token) {
+    throw new Error('No token found, please log in again');
+  }
   try {
     const response = await fetch(`/api/inventory/${productId}/add`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
       },
       body: JSON.stringify(data)
     });

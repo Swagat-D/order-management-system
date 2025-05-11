@@ -135,17 +135,23 @@ router.post('/reset-password', async (req, res) => {
 // @desc    Authenticate user & get token
 // @access  Public
 router.post('/login', async (req, res) => {
-  const { username, password } = req.body;
+  const { email, password } = req.body;
+  if (!email || !password) {
+  return res.status(400).json({ msg: 'Email and password are required' });
+}
+console.log('Login request:', { email, password });
 
   try {
     // Find user
-    const user = await User.findOne({ username });
+    const user = await User.findOne({ email });
     if (!user) {
+      console.log('User not found with email:', email);
       return res.status(400).json({ msg: 'Invalid credentials' });
     }
 
     // Validate password
     const isMatch = await user.validatePassword(password);
+    console.log('Password match:', isMatch);
     if (!isMatch) {
       return res.status(400).json({ msg: 'Invalid credentials' });
     }

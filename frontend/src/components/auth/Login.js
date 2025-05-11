@@ -17,7 +17,7 @@ import { LocalDrink as LocalDrinkIcon, Visibility, VisibilityOff } from '@mui/ic
 import { AuthContext } from '../../context/AuthContext';
 
 const Login = () => {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { login, isAuthenticated, error } = useContext(AuthContext);
@@ -26,6 +26,7 @@ const Login = () => {
   const [message] = useState(location.state?.message || '');
   const from = location.state?.from?.pathname || '/';
   const [showPassword, setShowPassword] = useState(false);
+
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -37,7 +38,7 @@ const Login = () => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      await login(username, password);
+      await login(email, password);
     } finally {
       setIsSubmitting(false);
     }
@@ -158,13 +159,14 @@ const Login = () => {
               margin="normal"
               required
               fullWidth
-              id="username"
-              label="Username"
-              name="username"
-              autoComplete="username"
+              id="email"
+              label="Email Address"
+              name="email"
+              type="email"
+              autoComplete="email"
               autoFocus
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               sx={{
                 '& .MuiInputBase-root': { fontSize: { xs: '0.875rem', sm: '1rem' } },
                 '& .MuiInputLabel-root': { fontSize: { xs: '0.875rem', sm: '1rem' } },
