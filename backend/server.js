@@ -1,6 +1,8 @@
 // Updated server.js with validation
 const express = require('express');
+const app = express();
 const cors = require('cors');
+const serverless = require("serverless-http");
 const connectDB = require('./config/db');
 const dotenv = require('dotenv');
 
@@ -22,9 +24,6 @@ if (!process.env.JWT_SECRET) {
 // Connect to database
 connectDB();
 
-// Initialize express app
-const app = express();
-
 // Middleware
 app.use(cors());
 app.use(express.json({ extended: false }));
@@ -43,6 +42,10 @@ app.use('/api/bills', require('./routes/bills'));
 app.get('/', (req, res) => {
   res.send('Cold Drinks Wholesale API is running');
 });
+
+// Export handler for Vercel
+module.exports = app;
+module.exports.handler = serverless(app);
 
 // Define PORT
 const PORT = process.env.PORT || 5000;
