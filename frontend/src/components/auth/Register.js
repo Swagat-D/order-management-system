@@ -82,7 +82,7 @@ const Register = () => {
     
     try {
       // Make sure to include all required fields
-      const response = await axios.post(`${API_URL}/auth/register`, {
+      const response = await axios.post(`${API_URL}/api/auth/register`, {
         username: formData.username,
         email: formData.email,
         password: formData.password,

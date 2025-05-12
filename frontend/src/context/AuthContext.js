@@ -28,7 +28,7 @@ export const AuthProvider = ({ children }) => {
       }
 
       try {
-        const res = await axios.get(`${API_URL}/auth/user`);
+        const res = await axios.get(`${API_URL}/api/auth/user`);
         setUser(res.data);
         setIsAuthenticated(true);
       } catch (err) {
@@ -50,7 +50,7 @@ export const AuthProvider = ({ children }) => {
     setError(null);
     
     try {
-      const res = await axios.post(`${API_URL}/auth/login`, { email, password });
+      const res = await axios.post(`${API_URL}/api/auth/login`, { email, password });
       
       // Save token and set auth
       localStorage.setItem('token', res.data.token);

@@ -202,7 +202,7 @@ const ForgotPassword = () => {
     setError('');
     
     try {
-      const response = await axios.post(`${API_URL}/auth/forgot-password`, { email });
+      const response = await axios.post(`${API_URL}/api/auth/forgot-password`, { email });
       setSuccess(response.data.msg || 'OTP sent to your email. Please check your inbox.');
       setActiveStep(1);
     } catch (err) {
@@ -226,7 +226,7 @@ const ForgotPassword = () => {
     setError('');
     
     try {
-      const response = await axios.post(`${API_URL}/auth/verify-otp`, { email, otp });
+      const response = await axios.post(`${API_URL}/api/auth/verify-otp`, { email, otp });
       setSuccess(response.data.msg || 'OTP verified successfully');
       setActiveStep(2);
     } catch (err) {
@@ -255,7 +255,7 @@ const ForgotPassword = () => {
     setError('');
     
     try {
-      const response = await axios.post(`${API_URL}/auth/reset-password`, { 
+      const response = await axios.post(`${API_URL}/api/auth/reset-password`, { 
         email, 
         otp, 
         password 
@@ -290,7 +290,7 @@ const ForgotPassword = () => {
     setError('');
     
     try {
-      const response = await axios.post(`${API_URL}/auth/forgot-password`, { email });
+      const response = await axios.post(`${API_URL}/api/auth/forgot-password`, { email });
       setSuccess('New OTP sent to your email');
     } catch (err) {
       setError(err.response?.data?.msg || 'Failed to resend OTP. Please try again.');

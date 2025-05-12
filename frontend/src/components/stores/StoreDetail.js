@@ -39,15 +39,15 @@ const StoreDetail = () => {
     const fetchStoreData = async () => {
       setLoading(true);
       try {
-        const storeRes = await axios.get(`${API_URL}/stores/${id}`, {
+        const storeRes = await axios.get(`${API_URL}/api/stores/${id}`, {
           headers: { 'x-auth-token': localStorage.getItem('token') },
         });
         setStore(storeRes.data);
-        const ordersRes = await axios.get(`${API_URL}/orders/store/${id}`, {
+        const ordersRes = await axios.get(`${API_URL}/api/orders/store/${id}`, {
           headers: { 'x-auth-token': localStorage.getItem('token') },
         });
         setOrders(ordersRes.data);
-        const paymentsRes = await axios.get(`${API_URL}/payments/store/${id}`, {
+        const paymentsRes = await axios.get(`${API_URL}/api/payments/store/${id}`, {
           headers: { 'x-auth-token': localStorage.getItem('token') },
         });
         setPayments(paymentsRes.data);
