@@ -1,10 +1,9 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "vercel-build": "echo 'No build needed'",
     "server": "nodemon server.js",
     "client": "npm start --prefix ../frontend",
     "dev": "concurrently \"npm run server\" \"npm run client\"",
