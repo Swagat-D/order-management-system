@@ -50,7 +50,9 @@ router.get('/', auth, async (req, res) => {
 router.get('/pending', auth, async (req, res) => {
   try {
     const orders = await Order.find({ status: 'pending' })
-      .populate('store', 'name')
+      .populate('store', 'name address contactName contactPhone')
+      .populate('items.product', 'name') 
+
       .sort({ orderDate: 1 });
     
     res.json(orders);
@@ -149,8 +151,8 @@ router.post('/', auth, async (req, res) => {
     
     // Populate store and product information for response
     const populatedOrder = await Order.findById(order._id)
-      .populate('store', 'name')
-      .populate('items.product', 'name');
+        .populate('store', 'name address contactName contactPhone')  // ✅ FULL store data
+        .populate('items.product', 'name');   
     
     res.json(populatedOrder);
   } catch (err) {
@@ -235,8 +237,8 @@ router.put('/:id/deliver', auth, async (req, res) => {
     
     // Return updated order with populated fields
     const updatedOrder = await Order.findById(order._id)
-      .populate('store', 'name')
-      .populate('items.product', 'name');
+        .populate('store', 'name address contactName contactPhone')  
+        .populate('items.product', 'name');   
     
     res.json(updatedOrder);
   } catch (err) {

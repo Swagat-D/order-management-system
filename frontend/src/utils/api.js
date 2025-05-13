@@ -58,7 +58,7 @@ export const getOrders = async (page = 1, limit = 10, status = '', storeId = '')
 };
 
 export const deliverOrder = async (orderId, paymentData) => {
-  const res = await axios.put(`${API_URL}/orders/${orderId}/deliver`, paymentData);
+  const res = await axios.put(`${API_URL}/api/orders/${orderId}/deliver`, paymentData);
   return res.data;
 };
 

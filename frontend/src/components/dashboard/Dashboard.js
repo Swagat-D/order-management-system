@@ -34,18 +34,18 @@ ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, C
 const Dashboard = () => {
   const [summary, setSummary] = useState(null);
   const [salesChartData, setSalesChartData] = useState(null);
-  const [ setProductChartData] = useState(null);
+  const [ productChartData,setProductChartData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const location = useLocation();
   const navigate = useNavigate();
-  const [ setOpenCreditDialog] = useState(false);
-  const [ setOpenCashDialog] = useState(false);
-  const [ setCashTransactions] = useState([]);
-  const [ setLoadingTransactions] = useState(false);
-  const [ setOpenSalesDialog] = useState(false);
-  const [ setSalesData] = useState([]);
-  const [ setLoadingSales] = useState(false);
+  const [ openCreditDialog ,setOpenCreditDialog] = useState(false);
+  const [ openCashDialog,setOpenCashDialog] = useState(false);
+  const [ cashTransactions ,setCashTransactions] = useState([]);
+  const [ loadingTransactions,setLoadingTransactions] = useState(false);
+  const [ openSalesDialog, setOpenSalesDialog] = useState(false);
+  const [ salesData, setSalesData] = useState([]);
+  const [ loadingSales,setLoadingSales] = useState(false);
   const [lastRefreshed, setLastRefreshed] = useState(new Date());
 
   useEffect(() => {
